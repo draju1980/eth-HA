@@ -1,0 +1,13 @@
+---
+# defaults var file for ethnodes
+
+# The default data directory for all containers
+datadir: "$HOME/ethdata" # The directory where the cointainer data will be stored
+
+# Cointaiuner names for geth, lighthouse and haproxy
+geth_node_name: "geth"
+lighthouse_node_name: "lighthouse"
+haproxy_node_name: "haproxy"
+
+# Random password for the geth and lighthouse nodes
+random_password: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters') }}"

@@ -1,0 +1,32 @@
+# Lighthouse Testnet Configuration
+
+# The Ethereum 2.0 network to connect to (e.g.,goerli, mainnet, pyrmont, prater, medalla)
+network: goerli
+
+# Data directory for storing Lighthouse database and other data
+datadir: ~/.lighthouse/root/.lighthouse/data
+
+# HTTP server configuration
+http:
+  enabled: true
+  listen_address: 127.0.0.1
+  listen_port: {{ lighthouse_rpc_port }}
+  allow_origin: "*"
+
+# JSON-RPC server configuration
+rpc:
+  enabled: true
+  listen_address: 127.0.0.1
+  listen_port: {{ lighthouse_wss_port }}
+  allow_origin: "*"
+
+# REST API server configuration
+rest_api:
+  enabled: false
+  listen_address: 127.0.0.1
+  listen_port: 5062
+
+# Beacon node configuration
+beacon_node:
+  http_address: 127.0.0.1
+  http_port: {{ lighthouse_rpc_port }}

@@ -1,0 +1,63 @@
+---
+- name: create geth data and config directory if they don't exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+  loop:
+    - "{{ datadir }}/{{ geth_node_name }}"
+    - "{{ datadir }}/{{ geth_node_name }}/data"
+    - "{{ datadir }}/{{ geth_node_name }}/config"
+
+- name: Copy geth config file to the config directory
+  ansible.builtin.copy:
+    template:
+      src: "templates/geth_config.toml.j2"
+      dest: "{{ datadir }}/{{ geth_node_name }}/config/config.toml"
+    become: yes
+
+- name: Deploy geth testnet with Docker
+  docker_container:
+    name: "{{ geth_node_name }}"
+    image: ethereum/client-go:latest
+    command: --config /root/.ethereum/config/config.toml
+    state: started
+    network_mode: "host"
+    ports:
+      - "{{ geth_ports }}"
+    volumes:
+      - "{{ datadir }}/{{ geth_node_name }}/data:/root/.ethereum/data"
+      - "{{ datadir }}/{{ geth_node_name }}/config:/root/.ethereum/config"
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+
+- name: Check if the file exists
+  ansible.builtin.stat:
+    path: "{{ datadir }}/{{ geth_node_name }}/config/aditional_wallet.txt"
+  register: wallet_file_stat
+
+- name: Copy random password file to the config directory
+  when: wallet_file_stat.stat.exists == False
+  ansible.builtin.copy:
+    template:
+      src: "templates/password.txt.j2"
+      dest: "{{ datadir }}/{{ geth_node_name }}/config/password.txt"
+    become: yes
+
+- name: Create additional geth wallet
+  when: wallet_file_stat.stat.exists == False
+  docker_container:
+    name: additional_geth_wallet
+    image: ethereum/client-go:latest
+    command: account new --password /root/.ethereum/config/password.txt
+    volumes:
+      - "{{ datadir }}/{{ geth_node_name }}/config:/root/.ethereum/config"
+    register: additional_wallet
+
+- name: Copy aditional_wallet details to a file
+  when: additional_wallet.changed
+  ansible.builtin.copy:
+    content: "{{ aditional_wallet.stdout }}"
+    dest: "{{ datadir }}/{{ geth_node_name }}/config/aditional_wallet.txt"

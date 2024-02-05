@@ -1,0 +1,63 @@
+---
+- name: Create Lighthouse data and config directory if they don't exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+  loop:
+    - "{{ datadir }}/{{ lighthouse_node_name }}"
+    - "{{ datadir }}/{{ lighthouse_node_name }}/data"
+    - "{{ datadir }}/{{ lighthouse_node_name }}/config"
+
+- name: Copy Lighthouse config file to the config directory
+  ansible.builtin.copy:
+    template:
+      src: "templates/lighthouse_config.yaml.j2"
+      dest: "{{ datadir }}/{{ lighthouse_node_name }}/config/config.yaml"
+    become: yes
+
+- name: Start Lighthouse node container
+  ansible.builtin.docker_container:
+    name: "{{ lighthouse_node_name }}"
+    image: sigp/lighthouse:latest-modern
+    command: --network /root/.lighthouse/config/config.yaml
+    state: started
+    network_mode: "host"
+    ports:
+      - "{{ lighthouse_ports }}"
+    volumes:
+      - "{{ datadir }}/{{ lighthouse_node_name }}/data:/root/.lighthouse/data"
+      - "{{ datadir }}/{{ lighthouse_node_name }}/config:/root/.lighthouse/config"
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+
+- name: Check if the file exists
+  ansible.builtin.stat:
+    path: "{{ datadir }}/{{ lighthouse_node_name }}/config/aditional_wallet.txt"
+  register: wallet_file_stat
+
+- name: Copy random password file to the config directory
+  when: wallet_file_stat.stat.exists == False
+  ansible.builtin.copy:
+    template:
+      src: "templates/password.txt.j2"
+      dest: "{{ datadir }}/{{ lighthouse_node_name }}/config/password.txt"
+    become: yes
+
+- name: Create additional lighthous wallet
+  when: wallet_file_stat.stat.exists == False
+  docker_container:
+    name: additional_lighthous_wallet
+    image: sigp/lighthouse:latest-modern
+    command: account new --password /root/.lighthouse/config/password.txt
+    volumes:
+      - "{{ datadir }}/{{ lighthouse_node_name }}/config:/root/.lighthouse/config"
+    register: additional_wallet
+
+- name: Copy aditional_wallet details to a file
+  when: additional_wallet.changed
+  ansible.builtin.copy:
+    content: "{{ aditional_wallet.stdout }}"
+    dest: "{{ datadir }}/{{ lighthouse_node_name }}/config/aditional_wallet.txt"

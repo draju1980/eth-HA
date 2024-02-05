@@ -1,0 +1,23 @@
+[Eth]
+NetworkId = {{ GethNetworkId }}
+SyncMode = "{{ GethSyncMode }}"
+EthDiscoveryURLs = ["{{ GEthDiscoveryURLs }}"]
+SnapDiscoveryURLs = ["{{ GEthDiscoveryURLs }}"]
+NoPruning = false
+NoPrefetch = false
+
+[Node]
+DataDir = "{{ GethDataDir }}"
+IPCPath = "{{ GethIPCPath }}"
+HTTPHost = "{{ GethHTTPHost }}"
+HTTPPort = {{ GethHTTPPort }}
+HTTPCors = ["{{ GethHTTPCors }}"]
+HTTPVirtualHosts = ["{{ GethHTTPVirtualHosts }}"]
+HTTPModules = {{ GethHTTPModules }}
+WSHost = "{{ GethWSHost }}"
+WSPort = {{ GethWSPort }}
+WSOrigins = ["{{ GethWSOrigins }}"]
+
+[Node.P2P]
+MaxPeers = {{ GethMaxPeers }}
+NoDiscovery = {{ GethNoDiscovery }}

@@ -1,0 +1,20 @@
+global
+    log stdout format raw local0
+
+defaults
+    mode http
+    log global
+    option tcplog
+    option http-server-close
+    timeout connect 5000ms
+    timeout client 50000ms
+    timeout server 50000ms
+
+frontend rpc
+    bind *:8080
+    default_backend rpc_servers
+
+backend rpc_servers
+    balance roundrobin
+    server geth {{ geth_node_name }}:{{ geth_rpc_port }} check
+    server lighthouse {{ lighthouse_node_name }}:{{ lighthouse_rpc_port }} check

@@ -1,0 +1,45 @@
+---
+- name: Install Docker on Mac
+  when: ansible_os_family == 'Darwin'
+  block:
+    - name: Install Docker using Homebrew
+      become: true
+      command: brew install docker docker-compose docker-machine
+      tags: docker
+
+- name: Install Docker on Linux (Debian/Ubuntu)
+  when: ansible_os_family == 'Debian' or ansible_distribution == 'Ubuntu'
+  block:
+    - name: Install Docker dependencies
+      become: true
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - software-properties-common
+    - name: Add Docker official GPG key
+      become: true
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    - name: Add Docker repository
+      become: true
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+    - name: Install Docker
+      become: true
+      apt:
+        name: docker-ce docker-ce-cli containerd.io
+        state: present
+    - name: Add user to docker group
+      become: true
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+  tags: docker

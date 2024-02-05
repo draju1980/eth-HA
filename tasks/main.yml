@@ -1,0 +1,33 @@
+---
+- name: Install eth client containers locally
+  hosts: all
+  tasks:
+    # importingthe variables from testnet.yml
+    - name: Include vars of testnet.yml
+      ansible.builtin.include_vars:
+        file: ../vars/testnet.yml
+
+    # importing the defaults
+    - name: Include defaults variables
+      ansible.builtin.include_vars:
+        file: ../defaults/main.yml
+
+    # importing the datadir task
+    - import_tasks: utils.yml
+      tags: utils
+
+    # importing the docker installation task
+    - import_tasks: docker.yml
+      tags: docker
+
+    # importing the geth installation task
+    - import_tasks: geth.yml
+      tags: geth
+
+    # importing the lighthouse installation task
+    - import_tasks: lighthouse.yml
+      tags: lighthouse
+
+    # importing the haproxy installation task
+    - import_tasks: haproxy.yml
+      tags: haproxy

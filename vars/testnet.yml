@@ -1,0 +1,50 @@
+---
+# GETH Config perameters for testnet
+# 8545 TCP, used by the HTTP based JSON RPC API
+# 8546 TCP, used by the WebSocket based JSON RPC API
+# 30304 UDP, used by the P2P protocol's new peer discovery overlay
+# 30303 TCP and UDP, used by the P2P protocol running the network
+
+geth_rpc_port: 8545
+geth_wss_port: 8546
+geth_p2p_udp_port: 30304
+geth_p2p_tcp_port: 30303
+
+geth_ports:
+  - "127.0.0.1:{{ geth_rpc_port }}:{{ geth_rpc_port }}"
+  - "127.0.0.1:{{ geth_wss_port }}:{{ geth_wss_port }}"
+  - "0.0.0.0:{{ geth_p2p_udp_port }}:{{ geth_p2p_udp_port }}"
+  - "0.0.0.0:{{ geth_p2p_tcp_port }}:{{ geth_p2p_tcp_port }}"
+
+## lighthouse P2P Discovery Port: 9000 (UDP)
+## lighthouse HTTP API Port: 5052 (TCP)
+## lighthouse WebSocket API Port:  5053 (TCP)
+lighthouse_rpc_port: 5052
+lighthouse_wss_port: 5053
+lighthouse_p2p_port: 9000
+
+lighthouse_ports:
+  - "127.0.0.1:{{ lighthouse_rpc_port }}:{{ lighthouse_rpc_port }}"
+  - "127.0.0.1:{{ lighthouse_wss_port }}:{{ lighthouse_wss_port }}"
+  - "0.0.0.0:{{ lighthouse_p2p_port }}:{{ lighthouse_p2p_port }}"
+
+# [Eth]
+GethNetworkId: 11155111
+GethSyncMode: "snap"
+GEthDiscoveryURLs: "enrtree://AKA3AM6LPBYEUDMVNU3BSVQJ5AD45Y7YPOHJLEF6W26QOE4VTUDPE@all.sepolia.ethdisco.net"
+NoPruning: false
+NoPrefetch: false
+#[Node]
+GethDataDir: "/data"
+GethIPCPath: "geth.ipc"
+GethHTTPHost: "0.0.0.0"
+GethHTTPPort: 8178
+GethHTTPCors: "*"
+GethHTTPVirtualHosts: "*"
+GethHTTPModules: ["web3", "eth", "txpool"]
+GethWSHost: "0.0.0.0"
+GethWSPort: 8546
+GethWSOrigins: "*"
+# [Node.P2P]
+GethMaxPeers: 25
+GethNoDiscovery: false

@@ -1,0 +1,39 @@
+---
+- name: Create haproxy data and config directory if they don't exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+  loop:
+    - "{{ datadir }}/{{ haproxy_node_name }}"
+    - "{{ datadir }}/{{ haproxy_node_name }}/data"
+    - "{{ datadir }}/{{ haproxy_node_name }}/config"
+
+- name: Copy HAProxy Configuration File
+  ansible.builtin.copy:
+    template: 
+      src: "templates/haproxy.cfg.j2"
+      dest: "{{ datadir }}/{{ haproxy_node_name }}/config/haproxy.cfg"
+    mode: '0644'
+    notify:
+      - Restart HAProxy
+
+- name: Start HAProxy Container
+  docker_container:
+    name: "{{ haproxy_node_name }}"
+    image:
+      name: haproxy:latest
+      volumes:
+        - "{ datadir }}/{{ haproxy_node_name }}/config/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro"
+    ports:
+      - "8080:8080"
+    restart_policy: always
+    state: started
+    network_mode: "host"
+    volumes:
+      - "{{ datadir }}/{{ haproxy_node_name }}/data:/usr/local/etc/haproxy"
+      - "{{ datadir }}/{{ haproxy_node_name }}/config:/usr/local/etc/haproxy"
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
