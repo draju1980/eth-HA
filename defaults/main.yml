@@ -4,10 +4,26 @@
 # The default data directory for all containers
 datadir: "$HOME/ethdata" # The directory where the cointainer data will be stored
 
+# Application data directory
+app_data_path: "{{ datadir.path }}"
+geth_appdata: "{{ datadir }}/{{ geth_node_name }}"
+lighthouse_appdata: "{{ datadir }}/{{ lighthouse_node_name }}"
+haproxy_appdata: "{{ datadir }}/{{ haproxy_node_name }}"
+
+# Docker network name
+docker_network_name: "ethnet"
+
+
+
 # Cointaiuner names for geth, lighthouse and haproxy
 geth_node_name: "geth"
+geth_docker_image: "ethereum/client-go:stable"
+prysm_node_name: "prysm"
+prysm_docker_image: "gcr.io/prysmaticlabs/prysm/beacon-chain:latest"
 lighthouse_node_name: "lighthouse"
+lighthouse_docker_image: "sigp/lighthouse:latest"
 haproxy_node_name: "haproxy"
+haproxy_docker_image: "haproxy:latest"
 
 # Random password for the geth and lighthouse nodes
 random_password: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters') }}"

@@ -21,13 +21,15 @@ geth_ports:
 ## lighthouse WebSocket API Port:  5053 (TCP)
 lighthouse_rpc_port: 5052
 lighthouse_wss_port: 5053
+lighthouse_beacon_port: 8551
 lighthouse_p2p_port: 9000
 
 lighthouse_ports:
   - "127.0.0.1:{{ lighthouse_rpc_port }}:{{ lighthouse_rpc_port }}"
   - "127.0.0.1:{{ lighthouse_wss_port }}:{{ lighthouse_wss_port }}"
+  - "127.0.0.1:{{ lighthouse_beacon_port }}:{{ lighthouse_beacon_port }}"
   - "0.0.0.0:{{ lighthouse_p2p_port }}:{{ lighthouse_p2p_port }}"
-
+  - "0.0.0.0:{{ lighthouse_p2p_port }}:{{ lighthouse_p2p_port }}/udp"
 # [Eth]
 GethNetworkId: 11155111
 GethSyncMode: "snap"

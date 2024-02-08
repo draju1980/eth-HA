@@ -1,63 +1,104 @@
 ---
-- name: create geth data and config directory if they don't exist
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
+- name: Generate random hex string for jwtsecret and save to file
+  ansible.builtin.shell: "openssl rand -hex 32 | tr -d '\\n' | tee /root/ethdata/lighthouse/config/jwt.hex"
+  become: true
+
+- name: Copy jwtsecret to geth config location
+  ansible.builtin.copy:
+    src: "/root/ethdata/lighthouse/config/jwt.hex"
+    dest: "{{ app_data_path }}/{{ geth_node_name }}/config/jwt.hex"
     owner: root
     group: root
-    mode: 0775
-  loop:
-    - "{{ datadir }}/{{ geth_node_name }}"
-    - "{{ datadir }}/{{ geth_node_name }}/data"
-    - "{{ datadir }}/{{ geth_node_name }}/config"
+    mode: "0600"
+  become: true
 
-- name: Copy geth config file to the config directory
-  ansible.builtin.copy:
-    template:
-      src: "templates/geth_config.toml.j2"
-      dest: "{{ datadir }}/{{ geth_node_name }}/config/config.toml"
-    become: yes
+# - name: Copy clef to the localhost
+#   ansible.builtin.copy:
+#     src: ../files/clef.sh
+#     dest: /usr/sbin/clef.sh
+#     owner: root
+#     group: root
+#   tags: clef_sript
+#   become: true
 
+# - name: Update permissions on /usr/sbin/clef.sh
+#   ansible.builtin.file:
+#     path: /usr/sbin/clef.sh
+#     mode: "a+x"
+#     owner: root
+#     group: root
+#   become: true
+
+# # - name: Execute clef.sh shell script
+# #   script: /usr/sbin/clef.sh
+# #   become: true
+
+- name: Copy Geth config file to the localhost
+  ansible.builtin.template:
+    src: ../templates/geth-config.toml.j2
+    dest: "{{ app_data_path }}/{{ geth_node_name }}/config/geth-config.toml"
+  tags: geth_config
+  become: true
+
+  
 - name: Deploy geth testnet with Docker
-  docker_container:
+  become: true
+  ansible.builtin.docker_container:
     name: "{{ geth_node_name }}"
-    image: ethereum/client-go:latest
-    command: --config /root/.ethereum/config/config.toml
+    hostname: "{{ geth_node_name }}"
+    image: "{{ geth_docker_image }}"
+    command: --sepolia --http --authrpc.addr {{ geth_node_name }} --authrpc.port 8551 --authrpc.vhosts {{ geth_node_name }} --authrpc.jwtsecret /root/.ethereum/config/jwt.hex --datadir=/root/.ethereum/data
+    #command: --config /root/.ethereum/config/geth-config.toml
+    # command: --sepolia --syncmode light --datadir=/root/.ethereum/data/geth --authrpc.addr localhost --authrpc.port 8551, 8545 --authrpc.vhosts localhost --authrpc.jwtsecret=root/.ethereum/config/jwtsecret --http --http.api eth,net --signer=/root/.ethereum/config/clef/clef.ipc 
+    # command: --sepolia --datadir=/data --http --http.api=eth,net,web3 --http.addr=0.0.0.0 --http.vhosts=“*” --http.corsdomain=“*” --ws --ws.origins=“*” --ws.addr=0.0.0.0 --ws.api=eth,net,web3 --graphql --graphql.corsdomain=“*” --graphql.vhosts=“*”
     state: started
-    network_mode: "host"
+    restart_policy: always
+    networks_cli_compatible: yes
+    networks:
+      - name: "{{ docker_network_name }}"
     ports:
-      - "{{ geth_ports }}"
+      # - "127.0.0.1:{{ geth_rpc_port }}:{{ geth_rpc_port }}"
+      # - "127.0.0.1:{{ geth_wss_port }}:{{ geth_wss_port }}"
+      - "0.0.0.0:{{ geth_p2p_udp_port }}:{{ geth_p2p_udp_port }}"
+      - "0.0.0.0:{{ geth_p2p_tcp_port }}:{{ geth_p2p_tcp_port }}"
+      - "0.0.0.0:{{ geth_p2p_udp_port }}:{{ geth_p2p_udp_port }}/udp"
+      - "0.0.0.0:{{ geth_p2p_tcp_port }}:{{ geth_p2p_tcp_port }}/udp"
     volumes:
-      - "{{ datadir }}/{{ geth_node_name }}/data:/root/.ethereum/data"
-      - "{{ datadir }}/{{ geth_node_name }}/config:/root/.ethereum/config"
+      - "{{ app_data_path }}/{{ geth_node_name }}/data:/root/.ethereum/data"
+      - "{{ app_data_path }}/{{ geth_node_name }}/config:/root/.ethereum/config"
       - "/etc/timezone:/etc/timezone:ro"
       - "/etc/localtime:/etc/localtime:ro"
 
+
 - name: Check if the file exists
   ansible.builtin.stat:
-    path: "{{ datadir }}/{{ geth_node_name }}/config/aditional_wallet.txt"
+    path: "{{ app_data_path }}/{{ geth_node_name }}/config/aditional_wallet.txt"
   register: wallet_file_stat
 
 - name: Copy random password file to the config directory
   when: wallet_file_stat.stat.exists == False
-  ansible.builtin.copy:
-    template:
-      src: "templates/password.txt.j2"
-      dest: "{{ datadir }}/{{ geth_node_name }}/config/password.txt"
-    become: yes
+  ansible.builtin.template:
+      src: "../templates/password.txt.j2"
+      dest: "{{ app_data_path }}/{{ geth_node_name }}/config/password.txt"
 
-- name: Create additional geth wallet
-  when: wallet_file_stat.stat.exists == False
-  docker_container:
-    name: additional_geth_wallet
-    image: ethereum/client-go:latest
-    command: account new --password /root/.ethereum/config/password.txt
-    volumes:
-      - "{{ datadir }}/{{ geth_node_name }}/config:/root/.ethereum/config"
-    register: additional_wallet
+# - name: Create additional geth wallet
+#   when: wallet_file_stat.stat.exists == False
+#   ansible.builtin.docker_container:
+#     name: additional_geth_wallet
+#     image: ethereum/client-go:latest
+#     command: account new --password /root/.ethereum/config/password.txt
+#     volumes:
+#       - "{{ app_data_path }}/{{ geth_node_name }}/config:/root/.ethereum/config"
+#     networks:
+#       - name: "{{ docker_network_name }}"
+#     ports:
+#       - "127.0.0.1:{{ geth_rpc_port }}:{{ geth_rpc_port }}"
+#       - "127.0.0.1:{{ geth_wss_port }}:{{ geth_wss_port }}"
+#       - "0.0.0.0:{{ geth_p2p_udp_port }}:{{ geth_p2p_udp_port }}"
+#       - "0.0.0.0:{{ geth_p2p_tcp_port }}:{{ geth_p2p_tcp_port }}"
 
-- name: Copy aditional_wallet details to a file
-  when: additional_wallet.changed
-  ansible.builtin.copy:
-    content: "{{ aditional_wallet.stdout }}"
-    dest: "{{ datadir }}/{{ geth_node_name }}/config/aditional_wallet.txt"
+# - name: Copy aditional_wallet details to a file
+#   when: additional_wallet.changed
+#   ansible.builtin.copy:
+#     content: "{{ aditional_wallet.stdout }}"
+#     dest: "{{ app_data_path }}/{{ geth_node_name }}/config/aditional_wallet.txt"

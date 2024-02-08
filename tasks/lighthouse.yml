@@ -1,63 +1,65 @@
 ---
-- name: Create Lighthouse data and config directory if they don't exist
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    owner: root
-    group: root
-    mode: 0775
-  loop:
-    - "{{ datadir }}/{{ lighthouse_node_name }}"
-    - "{{ datadir }}/{{ lighthouse_node_name }}/data"
-    - "{{ datadir }}/{{ lighthouse_node_name }}/config"
+- name: Copy random password file to the config directory
+  when: wallet_file_stat.stat.exists == False
+  ansible.builtin.template:
+      src: "../templates/password.txt.j2"
+      dest: "{{ app_data_path }}/{{ lighthouse_node_name }}/config/password.txt"
 
 - name: Copy Lighthouse config file to the config directory
-  ansible.builtin.copy:
-    template:
-      src: "templates/lighthouse_config.yaml.j2"
-      dest: "{{ datadir }}/{{ lighthouse_node_name }}/config/config.yaml"
-    become: yes
+  ansible.builtin.template:
+      src: "../templates/lighthouse_config.yaml.j2"
+      dest: "{{ app_data_path }}/{{ lighthouse_node_name }}/config/config.yaml"
 
 - name: Start Lighthouse node container
   ansible.builtin.docker_container:
     name: "{{ lighthouse_node_name }}"
-    image: sigp/lighthouse:latest-modern
-    command: --network /root/.lighthouse/config/config.yaml
+    image: "{{ lighthouse_docker_image }}"
+    # Staking
+    command: lighthouse bn --network sepolia --execution-endpoint http://{{ geth_node_name }}:8551 --execution-jwt /root/.lighthouse/config/jwt.hex --checkpoint-sync-url https://sepolia.beaconstate.info --http
+    # Non-staking
+    # command: lighthouse bn --network sepolia --execution-endpoint http://localhost:8551 --execution-jwt /root/.lighthouse/config/jwt.hex --checkpoint-sync-url https://sepolia.beaconstate.info --disable-deposit-contract-sync --http
+    # command: --config=/root/.lighthouse/config/config.yaml
     state: started
-    network_mode: "host"
+    networks_cli_compatible: yes
+    networks:
+      - name: "{{ docker_network_name }}"
     ports:
-      - "{{ lighthouse_ports }}"
+      # - "127.0.0.1:{{ lighthouse_rpc_port }}:{{ lighthouse_rpc_port }}"
+      # - "127.0.0.1:{{ lighthouse_wss_port }}:{{ lighthouse_wss_port }}"
+      # - "127.0.0.1:{{ lighthouse_beacon_port }}:{{ lighthouse_beacon_port }}"
+      - "0.0.0.0:{{ lighthouse_p2p_port }}:{{ lighthouse_p2p_port }}"
+      - "0.0.0.0:{{ lighthouse_p2p_port }}:{{ lighthouse_p2p_port }}/udp"
     volumes:
-      - "{{ datadir }}/{{ lighthouse_node_name }}/data:/root/.lighthouse/data"
-      - "{{ datadir }}/{{ lighthouse_node_name }}/config:/root/.lighthouse/config"
+      - "{{ app_data_path }}/{{ lighthouse_node_name }}/data:/root/.lighthouse/data"
+      - "{{ app_data_path }}/{{ lighthouse_node_name }}/config:/root/.lighthouse/config"
       - "/etc/timezone:/etc/timezone:ro"
       - "/etc/localtime:/etc/localtime:ro"
+    
 
-- name: Check if the file exists
-  ansible.builtin.stat:
-    path: "{{ datadir }}/{{ lighthouse_node_name }}/config/aditional_wallet.txt"
-  register: wallet_file_stat
+# - name: Check if the file exists
+#   ansible.builtin.stat:
+#     path: "{{ datadir }}/{{ lighthouse_node_name }}/config/aditional_wallet.txt"
+#   register: wallet_file_stat
 
-- name: Copy random password file to the config directory
-  when: wallet_file_stat.stat.exists == False
-  ansible.builtin.copy:
-    template:
-      src: "templates/password.txt.j2"
-      dest: "{{ datadir }}/{{ lighthouse_node_name }}/config/password.txt"
-    become: yes
+# - name: Copy random password file to the config directory
+#   when: wallet_file_stat.stat.exists == False
+#   ansible.builtin.template:
+#     template:
+#       src: "templates/password.txt.j2"
+#       dest: "{{ datadir }}/{{ lighthouse_node_name }}/config/password.txt"
 
-- name: Create additional lighthous wallet
-  when: wallet_file_stat.stat.exists == False
-  docker_container:
-    name: additional_lighthous_wallet
-    image: sigp/lighthouse:latest-modern
-    command: account new --password /root/.lighthouse/config/password.txt
-    volumes:
-      - "{{ datadir }}/{{ lighthouse_node_name }}/config:/root/.lighthouse/config"
-    register: additional_wallet
+# - name: Create additional lighthous wallet
+#   when: wallet_file_stat.stat.exists == False
+#   docker_container:
+#     name: additional_lighthous_wallet
+#     image: sigp/lighthouse:latest-modern
+#     command: account new --password /root/.lighthouse/config/password.txt
+#     volumes:
+#       - "{{ datadir }}/{{ lighthouse_node_name }}/config:/root/.lighthouse/config"
+#     register: additional_wallet
 
-- name: Copy aditional_wallet details to a file
-  when: additional_wallet.changed
-  ansible.builtin.copy:
-    content: "{{ aditional_wallet.stdout }}"
-    dest: "{{ datadir }}/{{ lighthouse_node_name }}/config/aditional_wallet.txt"
+# - name: Copy aditional_wallet details to a file
+#   when: additional_wallet.changed
+#   ansible.builtin.copy:
+#     content: "{{ aditional_wallet.stdout }}"
+#     dest: "{{ datadir }}/{{ lighthouse_node_name }}/config/aditional_wallet.txt"

@@ -1,10 +1,10 @@
 # Lighthouse Testnet Configuration
 
-# The Ethereum 2.0 network to connect to (e.g.,goerli, mainnet, pyrmont, prater, medalla)
-network: goerli
+# The Ethereum 2.0 network to connect to (e.g. sepolia, goerli, mainnet, pyrmont, prater, medalla)
+network: sepolia
 
 # Data directory for storing Lighthouse database and other data
-datadir: ~/.lighthouse/root/.lighthouse/data
+datadir: /root/.lighthouse/data/
 
 # HTTP server configuration
 http:
@@ -29,4 +29,8 @@ rest_api:
 # Beacon node configuration
 beacon_node:
   http_address: 127.0.0.1
-  http_port: {{ lighthouse_rpc_port }}
+  http_port: {{ lighthouse_beacon_port }}
+  execution-endpoint: http://localhost:8551
+  execution-jwt: /root/.lighthouse/config/jwt.hex
+  checkpoint-sync-url: https://sepolia.beaconstate.info
+

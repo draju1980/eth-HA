@@ -4,3 +4,12 @@
   docker_container:
     name: "{{ haproxy_node_name }}"
     state: restarted
+  become: true
+
+# handlers for restart geth
+- name: Restart geth
+  docker_container:
+    name: "{{ geth_node_name }}"
+    state: restarted
+  become: true
+

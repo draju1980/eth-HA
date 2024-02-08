@@ -3,22 +3,37 @@
     path: "{{ datadir }}"
     state: directory
     mode: '0755'
-  become: true
   tags: datadir
+  register: datadir
+
+- name: create data and config directory  for geth lighthous and HAProxy if they don't exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0775'
+  loop:
+    - "{{ app_data_path }}/{{ geth_node_name }}"
+    - "{{ app_data_path }}/{{ geth_node_name }}/data"
+    - "{{ app_data_path }}/{{ geth_node_name }}/config"
+    - "{{ app_data_path }}/{{ lighthouse_node_name }}"
+    - "{{ app_data_path }}/{{ lighthouse_node_name }}/data"
+    - "{{ app_data_path }}/{{ lighthouse_node_name }}/config"
+    - "{{ app_data_path }}/{{ haproxy_node_name }}"
+    - "{{ app_data_path }}/{{ haproxy_node_name }}/data"
+    - "{{ app_data_path }}/{{ haproxy_node_name }}/config"
+
 - name: Copy ethnodes management scripts to the localhost
   ansible.builtin.copy:
     src: ../files/ethHA
     dest: /usr/sbin/ethHA
     owner: root
     group: root
-    mode: u+rwx,g-wx,o-rwx
   tags: ethHA
   become: true
-  # ansible.builtin.copy:
-  #   src: "{{ item }}"
-  #   dest: "/usr/sbin/{{ item }}"
-  #   mode: '0755'
-  # with_items:
-  #   - "files/ethnodes"
-  # become: true
-  # tags: ethHA
+- name: Update permissions on /usr/sbin/ethHA
+  ansible.builtin.file:
+    path: /usr/sbin/ethHA
+    mode: "a+x"
+    owner: root
+    group: root
+  become: true
