@@ -10,11 +10,12 @@
   ansible.builtin.docker_container:
     name: "{{ lighthouse_node_name }}"
     image: "{{ lighthouse_docker_image }}"
-    command: lighthouse bn --network sepolia --execution-endpoint http://{{ geth_node_name }}:8551 --execution-jwt /root/.lighthouse/config/jwt.hex --checkpoint-sync-url https://sepolia.beaconstate.info --http --disable-deposit-contract-sync  
+    command: lighthouse bn --network sepolia --execution-endpoint http://{{ geth_node_name }}:8551 --execution-jwt /root/.lighthouse/config/jwt.hex --checkpoint-sync-url https://sepolia.beaconstate.info --http --http-port 5052 --http-address 0.0.0.0 --disable-deposit-contract-sync --disable-upnp 
     # Staking
     # command: lighthouse bn --network sepolia --execution-endpoint http://{{ geth_node_name }}:8551 --execution-jwt /root/.lighthouse/config/jwt.hex --checkpoint-sync-url https://sepolia.beaconstate.info --http --http-port 5052 --http-address 0.0.0.0 --http-allow-origin="*"
     # Non-staking
     # command: lighthouse bn --network sepolia --execution-endpoint http://{{ geth_node_name }}:8551 --execution-jwt /root/.lighthouse/config/jwt.hex --checkpoint-sync-url https://sepolia.beaconstate.info --disable-deposit-contract-sync --http
+    # config: /root/.lighthouse/config/config.yaml
     # command: lighthouse --config=/root/.lighthouse/config/config.yaml
     state: started
     recreate: yes
@@ -24,8 +25,6 @@
       - name: "{{ docker_network_name }}"
     ports:
       - "127.0.0.1:{{ lighthouse_rpc_port }}:{{ lighthouse_rpc_port }}"
-      # - "127.0.0.1:{{ lighthouse_wss_port }}:{{ lighthouse_wss_port }}"
-      # - "127.0.0.1:{{ lighthouse_beacon_port }}:{{ lighthouse_beacon_port }}"
       - "0.0.0.0:{{ lighthouse_p2p_port }}:{{ lighthouse_p2p_port }}"
       - "0.0.0.0:{{ lighthouse_p2p_port }}:{{ lighthouse_p2p_port }}/udp"
     volumes:

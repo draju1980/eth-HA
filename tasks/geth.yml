@@ -37,7 +37,6 @@
       - name: "{{ docker_network_name }}"
     ports:
       - "127.0.0.1:{{ geth_rpc_port }}:{{ geth_rpc_port }}"
-      # - "127.0.0.1:{{ geth_wss_port }}:{{ geth_wss_port }}"
       - "0.0.0.0:{{ geth_p2p_udp_port }}:{{ geth_p2p_udp_port }}"
       - "0.0.0.0:{{ geth_p2p_tcp_port }}:{{ geth_p2p_tcp_port }}"
       - "0.0.0.0:{{ geth_p2p_udp_port }}:{{ geth_p2p_udp_port }}/udp"

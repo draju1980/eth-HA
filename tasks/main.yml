@@ -13,6 +13,10 @@
         file: ../defaults/main.yml
 
     # importing the datadir task
+    - import_tasks: firewall.yml
+      tags: firewall
+
+    # importing the datadir task
     - import_tasks: utils.yml
       tags: utils
 

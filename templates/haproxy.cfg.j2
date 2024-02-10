@@ -1,41 +1,47 @@
 global
     log stdout format raw local0
+    maxconn 4096
+    tune.ssl.default-dh-param 2048
 
 defaults
-    log     global
-    mode    http
-    option  httplog
-    option  dontlognull
-    timeout connect 5000
-    timeout client  50000
-    timeout server  50000
+    log global
+    mode http
+    option httplog
+    option dontlognull
+    timeout connect 5000ms
+    timeout client 50000ms
+    timeout server 50000ms
+
+frontend http_api
+    bind *:9090
+    mode http
+
+    acl PATH_lighthouse path_beg -i /lighthouse/
+    acl PATH_eth path_beg -i /eth/
+    
+    use_backend http_api_servers if PATH_lighthouse
+    use_backend http_api_servers if PATH_eth
 
 
-frontend http-in
-    bind *:80
-    default_backend ethHA
+frontend json_rpc
+    bind *:8080
+    mode http
+    default_backend json_rpc_server
 
-    acl is_geth path_beg /geth  
-    use_backend geth_backend if is_geth
+backend http_api_servers
+    mode http
+    option httpchk GET /lighthouse/health
+    server lnode 127.0.0.1:{{ lighthouse_rpc_port }} check
 
-    acl is_lighthouse path_beg /lighthouse  
-    use_backend lighthouse_backend if is_lighthouse
-  
-backend ethHA
-    balance roundrobin
-    server gnode {{ geth_node_name }}:{{ geth_rpc_port }} check
-    server lnode {{ lighthouse_node_name }}:{{ lighthouse_rpc_port}} check
 
-backend geth_backend
-    server gnode {{ geth_node_name }}:{{ geth_rpc_port }} check
+backend json_rpc_server
+    server gnode 127.0.0.1:{{ geth_rpc_port }} check
 
-backend lighthouse_backend
-    server lnode {{ lighthouse_node_name }}:{{ lighthouse_rpc_port }} check
 
 listen stats
-   bind *:8080
+   bind *:8888
    stats enable
    stats uri /
    stats refresh 5s
    stats realm Haproxy\ Statistics
-   stats auth cuser:CPassword
+   stats auth scott:{{ random_password }}

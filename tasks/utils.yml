@@ -30,10 +30,29 @@
     group: root
   tags: ethHA
   become: true
+
 - name: Update permissions on /usr/sbin/ethHA
   ansible.builtin.file:
     path: /usr/sbin/ethHA
     mode: "a+x"
     owner: root
     group: root
+  become: true
+
+- name: Copy Geth cli to local node
+  ansible.builtin.copy:
+    src: ../files/geth-cli
+    dest: /usr/sbin/geth-cli
+    owner: root
+    group: root
+  tags: geth-cli
+  become: true
+
+- name: Copy Lighthouse cli to local node
+  ansible.builtin.copy:
+    src: ../files/lighthouse-cli
+    dest: /usr/sbin/lighthouse-cli
+    owner: root
+    group: root
+  tags: lighthous-cli
   become: true

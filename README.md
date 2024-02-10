@@ -6,7 +6,7 @@ Application Design
 Role Name
 =========
 
-This role is designed to set up Geth and Lighthouse clients within Docker containers, along with additional wallets. Leveraging HAProxy, all RPC requests will be intelligently routed to both Ethereum clients using a round-robin traffic strategy.
+This role is designed to set up Geth and Lighthouse clients within Docker containers, along with additional wallets. Leveraging HAProxy, all RPC requests will be intelligently routed to both Ethereum clients.
 
 Requirements
 ------------

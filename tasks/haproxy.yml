@@ -1,27 +1,23 @@
 ---
-- name: Copy HAProxy Configuration File
-  ansible.builtin.template:
-    src: "../templates/haproxy.cfg.j2"
-    dest: "{{ app_data_path}}/{{ haproxy_node_name }}/config/haproxy.cfg"
-  register: haproxy_config    
+- name: Install HAProxy on ubuntu
   become: true
-  
-- name: Start HAProxy node container
-  docker_container:
-    name: "{{ haproxy_node_name }}"
-    image: "{{ haproxy_docker_image }}"
-    ports:
-      - "0.0.0.0:8080:8080"
-      - "0.0.0.0:80:80"
-    state: started
-    recreate: yes
-    restart_policy: always
-    networks_cli_compatible: yes
-    networks:
-      - name: "{{ docker_network_name }}"
-    volumes:
-      - "{{ app_data_path}}/{{ haproxy_node_name }}/config/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg"
-      # - "{{ app_data_path }}/{{ haproxy_node_name }}/data:/usr/local/etc/haproxy"
-      # - "{{ app_data_path }}/{{ haproxy_node_name }}/config:/usr/local/etc/haproxy"
-      - "/etc/timezone:/etc/timezone:ro"
-      - "/etc/localtime:/etc/localtime:ro"
+  apt:
+    name: haproxy
+    state: present
+
+- name: Copy HAProxy Configuration File
+  become: true
+  ansible.builtin.template:
+    src: ../templates/haproxy.cfg.j2
+    dest: "/etc/haproxy/haproxy.cfg"
+
+- name: reload haproxy
+  ansible.builtin.service:
+    name: haproxy
+    state: restarted
+  become: true
+
+- name: Password for HAProxy stats UI
+  debug:
+    msg: "HAProxy stats UI username: scott, password: {{ random_password }}"
+  tags: haproxy_ui
