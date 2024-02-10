@@ -12,27 +12,6 @@
     mode: "0600"
   become: true
 
-# - name: Copy clef to the localhost
-#   ansible.builtin.copy:
-#     src: ../files/clef.sh
-#     dest: /usr/sbin/clef.sh
-#     owner: root
-#     group: root
-#   tags: clef_sript
-#   become: true
-
-# - name: Update permissions on /usr/sbin/clef.sh
-#   ansible.builtin.file:
-#     path: /usr/sbin/clef.sh
-#     mode: "a+x"
-#     owner: root
-#     group: root
-#   become: true
-
-# # - name: Execute clef.sh shell script
-# #   script: /usr/sbin/clef.sh
-# #   become: true
-
 - name: Copy Geth config file to the localhost
   ansible.builtin.template:
     src: ../templates/geth-config.toml.j2
@@ -41,23 +20,23 @@
   become: true
 
   
-- name: Deploy geth testnet with Docker
+- name: Start Geth node container
   become: true
   ansible.builtin.docker_container:
     name: "{{ geth_node_name }}"
     hostname: "{{ geth_node_name }}"
     image: "{{ geth_docker_image }}"
-    command: --sepolia --http --authrpc.addr {{ geth_node_name }} --authrpc.port 8551 --authrpc.vhosts {{ geth_node_name }} --authrpc.jwtsecret /root/.ethereum/config/jwt.hex --datadir=/root/.ethereum/data
-    #command: --config /root/.ethereum/config/geth-config.toml
-    # command: --sepolia --syncmode light --datadir=/root/.ethereum/data/geth --authrpc.addr localhost --authrpc.port 8551, 8545 --authrpc.vhosts localhost --authrpc.jwtsecret=root/.ethereum/config/jwtsecret --http --http.api eth,net --signer=/root/.ethereum/config/clef/clef.ipc 
-    # command: --sepolia --datadir=/data --http --http.api=eth,net,web3 --http.addr=0.0.0.0 --http.vhosts=“*” --http.corsdomain=“*” --ws --ws.origins=“*” --ws.addr=0.0.0.0 --ws.api=eth,net,web3 --graphql --graphql.corsdomain=“*” --graphql.vhosts=“*”
+    command: --sepolia --authrpc.addr={{ geth_node_name }} --authrpc.port=8551 --authrpc.vhosts='*' --authrpc.jwtsecret=/root/.ethereum/config/jwt.hex --datadir=/root/.ethereum/data --http --http.port=8545 --http.addr={{ geth_node_name }}  --http.vhosts='*'  --http.api=eth,net,web3
+    # command: --config /root/.ethereum/config/geth-config.toml
+    # command: --sepolia --http --authrpc.addr {{ geth_node_name }} --authrpc.port 8551 --authrpc.vhosts {{ geth_node_name }} --authrpc.jwtsecret /root/.ethereum/config/jwt.hex --datadir=/root/.ethereum/data --http.api eth,net
     state: started
+    recreate: yes
     restart_policy: always
     networks_cli_compatible: yes
     networks:
       - name: "{{ docker_network_name }}"
     ports:
-      # - "127.0.0.1:{{ geth_rpc_port }}:{{ geth_rpc_port }}"
+      - "127.0.0.1:{{ geth_rpc_port }}:{{ geth_rpc_port }}"
       # - "127.0.0.1:{{ geth_wss_port }}:{{ geth_wss_port }}"
       - "0.0.0.0:{{ geth_p2p_udp_port }}:{{ geth_p2p_udp_port }}"
       - "0.0.0.0:{{ geth_p2p_tcp_port }}:{{ geth_p2p_tcp_port }}"
@@ -70,13 +49,13 @@
       - "/etc/localtime:/etc/localtime:ro"
 
 
-- name: Check if the file exists
+- name: Check if password file exists
   ansible.builtin.stat:
-    path: "{{ app_data_path }}/{{ geth_node_name }}/config/aditional_wallet.txt"
-  register: wallet_file_stat
+    path: "{{ app_data_path }}/{{ geth_node_name }}/config/password.txt"
+  register: geth_password_file
 
-- name: Copy random password file to the config directory
-  when: wallet_file_stat.stat.exists == False
+- name: Copy random genrated password to password.txt file in geth config directory
+  when: geth_password_file.stat.exists == False
   ansible.builtin.template:
       src: "../templates/password.txt.j2"
       dest: "{{ app_data_path }}/{{ geth_node_name }}/config/password.txt"

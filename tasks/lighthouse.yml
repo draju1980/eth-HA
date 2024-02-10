@@ -1,30 +1,29 @@
 ---
-- name: Copy random password file to the config directory
-  when: wallet_file_stat.stat.exists == False
+- name: Copy Lighthouse config file to the localhost
   ansible.builtin.template:
-      src: "../templates/password.txt.j2"
-      dest: "{{ app_data_path }}/{{ lighthouse_node_name }}/config/password.txt"
-
-- name: Copy Lighthouse config file to the config directory
-  ansible.builtin.template:
-      src: "../templates/lighthouse_config.yaml.j2"
-      dest: "{{ app_data_path }}/{{ lighthouse_node_name }}/config/config.yaml"
+    src: ../templates/lighthouse_config.yaml.j2
+    dest: "{{ app_data_path }}/{{ lighthouse_node_name }}/config/config.yaml"
+  tags: lighthous_config
+  become: true
 
 - name: Start Lighthouse node container
   ansible.builtin.docker_container:
     name: "{{ lighthouse_node_name }}"
     image: "{{ lighthouse_docker_image }}"
+    command: lighthouse bn --network sepolia --execution-endpoint http://{{ geth_node_name }}:8551 --execution-jwt /root/.lighthouse/config/jwt.hex --checkpoint-sync-url https://sepolia.beaconstate.info --http --disable-deposit-contract-sync  
     # Staking
-    command: lighthouse bn --network sepolia --execution-endpoint http://{{ geth_node_name }}:8551 --execution-jwt /root/.lighthouse/config/jwt.hex --checkpoint-sync-url https://sepolia.beaconstate.info --http
+    # command: lighthouse bn --network sepolia --execution-endpoint http://{{ geth_node_name }}:8551 --execution-jwt /root/.lighthouse/config/jwt.hex --checkpoint-sync-url https://sepolia.beaconstate.info --http --http-port 5052 --http-address 0.0.0.0 --http-allow-origin="*"
     # Non-staking
-    # command: lighthouse bn --network sepolia --execution-endpoint http://localhost:8551 --execution-jwt /root/.lighthouse/config/jwt.hex --checkpoint-sync-url https://sepolia.beaconstate.info --disable-deposit-contract-sync --http
-    # command: --config=/root/.lighthouse/config/config.yaml
+    # command: lighthouse bn --network sepolia --execution-endpoint http://{{ geth_node_name }}:8551 --execution-jwt /root/.lighthouse/config/jwt.hex --checkpoint-sync-url https://sepolia.beaconstate.info --disable-deposit-contract-sync --http
+    # command: lighthouse --config=/root/.lighthouse/config/config.yaml
     state: started
+    recreate: yes
+    restart_policy: always
     networks_cli_compatible: yes
     networks:
       - name: "{{ docker_network_name }}"
     ports:
-      # - "127.0.0.1:{{ lighthouse_rpc_port }}:{{ lighthouse_rpc_port }}"
+      - "127.0.0.1:{{ lighthouse_rpc_port }}:{{ lighthouse_rpc_port }}"
       # - "127.0.0.1:{{ lighthouse_wss_port }}:{{ lighthouse_wss_port }}"
       # - "127.0.0.1:{{ lighthouse_beacon_port }}:{{ lighthouse_beacon_port }}"
       - "0.0.0.0:{{ lighthouse_p2p_port }}:{{ lighthouse_p2p_port }}"
@@ -35,18 +34,25 @@
       - "/etc/timezone:/etc/timezone:ro"
       - "/etc/localtime:/etc/localtime:ro"
     
+- name: Check if password file exists
+  ansible.builtin.stat:
+    path: "{{ app_data_path }}/{{ lighthouse_node_name }}/config/password.txt"
+  register: lighthouse_password_file
+
+- name: Copy random genrated password to password.txt file in lighthouse config directory
+  when: lighthouse_password_file.stat.exists == False
+  ansible.builtin.template:
+      src: "../templates/password.txt.j2"
+      dest: "{{ app_data_path }}/{{ lighthouse_node_name }}/config/password.pass"
+
+# lighthouse --network sepolia account wallet create --name cube --password-file /root/.lighthouse/config/password.pass
+# lighthouse --network sepolia account wallet import --name wally --key-file wally.key --password-file wally.pass
 
 # - name: Check if the file exists
 #   ansible.builtin.stat:
 #     path: "{{ datadir }}/{{ lighthouse_node_name }}/config/aditional_wallet.txt"
 #   register: wallet_file_stat
 
-# - name: Copy random password file to the config directory
-#   when: wallet_file_stat.stat.exists == False
-#   ansible.builtin.template:
-#     template:
-#       src: "templates/password.txt.j2"
-#       dest: "{{ datadir }}/{{ lighthouse_node_name }}/config/password.txt"
 
 # - name: Create additional lighthous wallet
 #   when: wallet_file_stat.stat.exists == False

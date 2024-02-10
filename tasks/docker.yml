@@ -20,16 +20,11 @@
         - apt-transport-https
         - ca-certificates
         - curl
+        - jp
         - gnupg-agent
         - software-properties-common
-        - libusb-1.0-0-dev
         - python3-pip
         - python3-docker
-    #     - expect
-
-    # - name: Install pexpect for Python ansible module
-    #   become: true
-    #   command: pip3 install pexpect
 
     - name: Add Docker official GPG key
       # become: true

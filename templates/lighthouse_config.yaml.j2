@@ -17,7 +17,7 @@ http:
 rpc:
   enabled: true
   listen_address: 127.0.0.1
-  listen_port: {{ lighthouse_wss_port }}
+  listen_port: {{ lighthouse_rpc_port }}
   allow_origin: "*"
 
 # REST API server configuration
@@ -30,7 +30,7 @@ rest_api:
 beacon_node:
   http_address: 127.0.0.1
   http_port: {{ lighthouse_beacon_port }}
-  execution-endpoint: http://localhost:8551
+  execution-endpoint: http://{{ geth_node_name }}:8551
   execution-jwt: /root/.lighthouse/config/jwt.hex
   checkpoint-sync-url: https://sepolia.beaconstate.info
 

@@ -11,7 +11,7 @@ This role is designed to set up Geth and Lighthouse clients within Docker contai
 Requirements
 ------------
 
-This role is specifically developed for Linux distributions like Debian and Ubuntu, as well as Mac machines. It is not compatible with other operating systems.
+This role is specifically developed for Linux distributions like Debian and Ubuntu, It is not compatible with other operating systems.
 
 Role Variables
 --------------
@@ -20,6 +20,40 @@ This role incorporates variables defined in both defaults/main.yml and vars/test
 
 How to Use this role
 ==============
+To execute the Ansible playbook on the target Linux box, follow these steps:
+
+1.	Login to the Linux Box:
+SSH into the Linux box where you want to execute the Ansible playbook.
+
+2.	Switch to Root:
+Switch to the root user using the following command:
+```
+sudo su -
+```
+
+3.	Install Ansible and Git:
+Install Ansible and Git using the apt package manager:
+```
+sudo apt update
+```
+```
+sudo apt install ansible git -y
+```
+
+4.	Clone Repository:
+Clone the repository locally:
+```
+git clone https://github.com/draju1980/eth-HA.git
+```
+
+5.	Change Directory:
+Change to the eth-HA directory:
+```
+cd eth-HA
+```
+
+6.	Run Ansible Playbook:
+Run the Ansible playbook using the inventory file:
 
 ```
 ansible-playbook -i inventory.ini tasks/main.yml

@@ -6,19 +6,22 @@
   register: haproxy_config    
   become: true
   
-- name: Start HAProxy Container
+- name: Start HAProxy node container
   docker_container:
     name: "{{ haproxy_node_name }}"
     image: "{{ haproxy_docker_image }}"
     ports:
-      - "8080:8080"
-    restart_policy: always
+      - "0.0.0.0:8080:8080"
+      - "0.0.0.0:80:80"
     state: started
+    recreate: yes
+    restart_policy: always
     networks_cli_compatible: yes
     networks:
       - name: "{{ docker_network_name }}"
     volumes:
-      - "{{ app_data_path }}/{{ haproxy_node_name }}/data:/usr/local/etc/haproxy"
-      - "{{ app_data_path }}/{{ haproxy_node_name }}/config:/usr/local/etc/haproxy"
+      - "{{ app_data_path}}/{{ haproxy_node_name }}/config/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg"
+      # - "{{ app_data_path }}/{{ haproxy_node_name }}/data:/usr/local/etc/haproxy"
+      # - "{{ app_data_path }}/{{ haproxy_node_name }}/config:/usr/local/etc/haproxy"
       - "/etc/timezone:/etc/timezone:ro"
       - "/etc/localtime:/etc/localtime:ro"

@@ -22,10 +22,13 @@ restart_containers() {
 
 # Function to restart all containers
 reset() {
-    echo "Stop all Docker containers, remove all containers  and removing all containers data..."
+    echo "Stop all Docker containers" 
     docker stop geth lighthouse haproxy
-    docker rm geth lighthouse haproxy
-    sudo rm -rf $HOME/ethdata/*
+    echo "Removing all containers data..."
+    sudo rm -rf /root/ethdata/geth/data/*
+    sudo rm -rf /root/ethdata/lighthouse/data/*
+    sudo rm -rf /root/ethdata/haproxy/data/*
+    echo "Starting all Docker containers..."
     docker start geth lighthouse haproxy
 }
 

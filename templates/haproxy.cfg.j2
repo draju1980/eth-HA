@@ -2,19 +2,40 @@ global
     log stdout format raw local0
 
 defaults
-    mode http
-    log global
-    option tcplog
-    option http-server-close
-    timeout connect 5000ms
-    timeout client 50000ms
-    timeout server 50000ms
+    log     global
+    mode    http
+    option  httplog
+    option  dontlognull
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000
 
-frontend rpc
-    bind *:8080
-    default_backend rpc_servers
 
-backend rpc_servers
+frontend http-in
+    bind *:80
+    default_backend ethHA
+
+    acl is_geth path_beg /geth  
+    use_backend geth_backend if is_geth
+
+    acl is_lighthouse path_beg /lighthouse  
+    use_backend lighthouse_backend if is_lighthouse
+  
+backend ethHA
     balance roundrobin
-    server geth {{ geth_node_name }}:{{ geth_rpc_port }} check
-    server lighthouse {{ lighthouse_node_name }}:{{ lighthouse_rpc_port }} check
+    server gnode {{ geth_node_name }}:{{ geth_rpc_port }} check
+    server lnode {{ lighthouse_node_name }}:{{ lighthouse_rpc_port}} check
+
+backend geth_backend
+    server gnode {{ geth_node_name }}:{{ geth_rpc_port }} check
+
+backend lighthouse_backend
+    server lnode {{ lighthouse_node_name }}:{{ lighthouse_rpc_port }} check
+
+listen stats
+   bind *:8080
+   stats enable
+   stats uri /
+   stats refresh 5s
+   stats realm Haproxy\ Statistics
+   stats auth cuser:CPassword

@@ -43,6 +43,7 @@ AccountQueue = 64
 GlobalQueue = 1024
 Lifetime = 10800000000000
 
+
 [Eth.GPO]
 Blocks = 20
 Percentile = 60
@@ -51,21 +52,21 @@ MaxBlockHistory = 1024
 MaxPrice = 500000000000
 IgnorePrice = 2
 
+
 [Node]
-DataDir = "/root/.ethereum/data/geth"
-#IPCPath = "/root/.ethereum/config/clef/clef.ipc"
-HTTPHost = ""
+DataDir = "/root/.ethereum/data"
 HTTPPort = 8545
-HTTPVirtualHosts = ["localhost"]
+HTTPHost = "{{ geth_node_name }}"
+HTTPVirtualHosts = ["{{ geth_node_name }}"]
 HTTPModules = ["net", "web3", "eth"]
-AuthAddr = "localhost"
 AuthPort = 8551
-AuthVirtualHosts = ["localhost"]
-AuthJwtSecret = "/root/ethdata/lighthouse/config/jwt.hex"
-WSHost = ""
+AuthAddr = "{{ geth_node_name }}"
+AuthVirtualHosts = ["{{ geth_node_name }}"]
+WSHost = "{{ geth_node_name }}"
 WSPort = 8546
 WSModules = ["net", "web3", "eth"]
-
+InsecureUnlockAllowed = true
+JWTSecret = "/root/.ethereum/config/jwt.hex"
 
 
 [Node.P2P]
@@ -78,7 +79,6 @@ TrustedNodes = []
 ListenAddr = ":30303"
 DiscAddr = ""
 EnableMsgEvents = false
-
 [Node.HTTPTimeouts]
 ReadTimeout = 30000000000
 ReadHeaderTimeout = 30000000000
