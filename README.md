@@ -126,6 +126,6 @@ curl -X GET "http://helloworld.com/lighthouse/health" -H  "accept: application/j
 
 To view backend RPC or REST API stats via the HAProxy UI
 --------------
-Utilize an auto-generated password to access the HAProxy stats UI, which will be provided during the final task of the playbook execution. Alternatively, you may retrieve the login credentials from the HAProxy configuration file situated at /etc/haproxy/haproxy.cfg.
+Utilize an auto-generated password to access the HAProxy stats UI via port 8080, which will be provided during the final task of the playbook execution. Alternatively, you may retrieve the login credentials from the HAProxy configuration file situated at /etc/haproxy/haproxy.cfg.
 
 ![alt text](image-1.png)
