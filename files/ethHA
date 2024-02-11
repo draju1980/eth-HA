@@ -5,31 +5,30 @@
 # Function to start all containers
 start_containers() {
     echo "Starting all Docker containers..."
-    docker start geth lighthouse haproxy
+    docker start geth lighthouse
 }
 
 # Function to stop all containers
 stop_containers() {
     echo "Stopping all Docker containers..."
-    docker stop geth lighthouse haproxy
+    docker stop geth lighthouse
 }
 
 # Function to restart all containers
 restart_containers() {
     echo "Restarting all Docker containers..."
-    docker restart geth lighthouse haproxy
+    docker restart geth lighthouse
 }
 
 # Function to restart all containers
 reset() {
-    echo "Stop all Docker containers" 
-    docker stop geth lighthouse haproxy
-    echo "Removing all containers data..."
+    echo "Stop all Docker containers..." 
+    docker stop geth lighthouse
+    echo "Removing all containers data......"
     sudo rm -rf /root/ethdata/geth/data/*
     sudo rm -rf /root/ethdata/lighthouse/data/*
-    sudo rm -rf /root/ethdata/haproxy/data/*
     echo "Starting all Docker containers..."
-    docker start geth lighthouse haproxy
+    docker start geth lighthouse
 }
 
 # Check the command-line argument

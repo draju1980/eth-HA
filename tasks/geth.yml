@@ -47,7 +47,6 @@
       - "/etc/timezone:/etc/timezone:ro"
       - "/etc/localtime:/etc/localtime:ro"
 
-
 - name: Check if password file exists
   ansible.builtin.stat:
     path: "{{ app_data_path }}/{{ geth_node_name }}/config/password.txt"
@@ -58,25 +57,3 @@
   ansible.builtin.template:
       src: "../templates/password.txt.j2"
       dest: "{{ app_data_path }}/{{ geth_node_name }}/config/password.txt"
-
-# - name: Create additional geth wallet
-#   when: wallet_file_stat.stat.exists == False
-#   ansible.builtin.docker_container:
-#     name: additional_geth_wallet
-#     image: ethereum/client-go:latest
-#     command: account new --password /root/.ethereum/config/password.txt
-#     volumes:
-#       - "{{ app_data_path }}/{{ geth_node_name }}/config:/root/.ethereum/config"
-#     networks:
-#       - name: "{{ docker_network_name }}"
-#     ports:
-#       - "127.0.0.1:{{ geth_rpc_port }}:{{ geth_rpc_port }}"
-#       - "127.0.0.1:{{ geth_wss_port }}:{{ geth_wss_port }}"
-#       - "0.0.0.0:{{ geth_p2p_udp_port }}:{{ geth_p2p_udp_port }}"
-#       - "0.0.0.0:{{ geth_p2p_tcp_port }}:{{ geth_p2p_tcp_port }}"
-
-# - name: Copy aditional_wallet details to a file
-#   when: additional_wallet.changed
-#   ansible.builtin.copy:
-#     content: "{{ aditional_wallet.stdout }}"
-#     dest: "{{ app_data_path }}/{{ geth_node_name }}/config/aditional_wallet.txt"

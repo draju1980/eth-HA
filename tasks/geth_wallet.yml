@@ -1,0 +1,25 @@
+---
+# Geth wallet creation
+# geth account new --password /root/.ethereum/config/password.txt --keystore /root/.ethereum/config/keystore
+# To Create account
+# docker exec -it geth geth account new --password /root/.ethereum/config/password.txt --keystore /root/.ethereum/config/keystore
+# To list accounts
+# docker exec -it geth geth account list --keystore /root/.ethereum/config/keystore
+
+- name: Check if aditional wallet file exists
+  ansible.builtin.stat:
+    path: "{{ app_data_path }}/{{ geth_node_name }}/config/aditional_wallet.txt"
+  register: geth_wallet_file
+
+- name: Creating geth additional wallets
+  become: true
+  when: geth_wallet_file.stat.exists == false
+  block:
+    - name: Creating wallet for user Jack
+      ansible.builtin.shell: docker exec geth geth account new --password /root/.ethereum/config/password.txt --keystore /root/.ethereum/config/keystore
+
+    - name: Creating wallet for user Jill
+      ansible.builtin.shell: docker exec geth geth account new --password /root/.ethereum/config/password.txt --keystore /root/.ethereum/config/keystore
+
+    - name: List all geth wallets
+      ansible.builtin.shell: "docker exec geth geth account list --keystore /root/.ethereum/config/keystore > {{ app_data_path }}/{{ geth_node_name }}/config/aditional_wallet.txt"

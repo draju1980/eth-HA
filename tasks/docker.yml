@@ -9,11 +9,8 @@
         state: present
       loop:
         - apt-transport-https
-        - ca-certificates
-        - curl
         - jp
         - gnupg-agent
-        - software-properties-common
         - python3-pip
         - python3-docker
 
@@ -50,13 +47,16 @@
         name: "{{ lighthouse_docker_image }}"
         source: pull
 
-    - name: Pull HA-Proxy Docker image
-      docker_image:
-        name: "{{ haproxy_docker_image }}"
-        source: pull
+    - name: Check if password file exists
+      ansible.builtin.stat:
+        path: "{{ app_data_path }}/{{ geth_node_name }}/config/password.txt"
+      register: geth_password_file
+
+    - name: Stop all running Docker containers to aviod any data corruption during the updates.
+      when: geth_password_file.stat.exists == True
+      become: true
+      shell: docker stop $(docker ps -a -q)
+      tags: docker_pod
+      ignore_errors: True
   tags: docker
 
-- name: Stop all running Docker containers to aviod any data corruption during the updates.
-  become: true
-  shell: docker stop $(docker ps -a -q)
-  tags: docker

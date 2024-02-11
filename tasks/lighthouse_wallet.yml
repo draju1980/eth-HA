@@ -1,0 +1,23 @@
+---
+# lighthouse --network sepolia account wallet create --name cube --password-file /root/.lighthouse/config/password.pass
+# lighthouse --network sepolia account wallet import --name wally --key-file wally.key --password-file wally.pass
+# docker exec -it lighthouse lighthouse account wallet create --name jack --password-file /root/.lighthouse/config/password.pass --network sepolia --mnemonic-output-path /root/.lighthouse/config/jack_mnemonic
+# docker exec -it lighthouse lighthouse account wallet create --name jill --password-file /root/.lighthouse/config/password.pass --network sepolia --mnemonic-output-path /root/.lighthouse/config/jill_mnemonic
+
+- name: Check if aditional wallet file exists
+  ansible.builtin.stat:
+    path: "{{ app_data_path }}/{{ lighthouse_node_name }}/config/aditional_wallet.txt"
+  register: lighthouse_wallet_file
+
+- name: Creating lighthouse additional wallets
+  become: true
+  when: lighthouse_wallet_file.stat.exists == false
+  block:
+    - name: Creating wallet for user Jack
+      ansible.builtin.shell: docker exec lighthouse lighthouse account wallet create --name jack --password-file /root/.lighthouse/config/password.pass --network sepolia --mnemonic-output-path /root/.lighthouse/config/jack_mnemonic --datadir /root/.lighthouse/config
+
+    - name: Creating wallet for user Jill
+      ansible.builtin.shell: docker exec lighthouse lighthouse account wallet create --name jill --password-file /root/.lighthouse/config/password.pass --network sepolia --mnemonic-output-path /root/.lighthouse/config/jill_mnemonic --datadir /root/.lighthouse/config
+
+    - name: List all lighthouse wallets
+      ansible.builtin.shell: "docker exec lighthouse lighthouse account_manager wallet list --network sepolia > {{ app_data_path }}/{{ lighthouse_node_name }}/config/aditional_wallet.txt"

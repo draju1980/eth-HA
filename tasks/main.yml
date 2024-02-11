@@ -32,6 +32,14 @@
     - import_tasks: lighthouse.yml
       tags: lighthouse
 
+    # importing the Geth additional Wallet task
+    - import_tasks: geth_wallet.yml
+      tags: geth_wallet  
+
+    # importing the Lighthouse additional wallet task
+    - import_tasks: lighthouse_wallet.yml
+      tags: lighthouse_wallet
+
     # importing the haproxy installation task
     - import_tasks: haproxy.yml
       tags: haproxy

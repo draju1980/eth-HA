@@ -13,7 +13,7 @@ defaults
     timeout server 50000ms
 
 frontend http_api
-    bind *:9090
+    bind *:80
     mode http
 
     acl PATH_lighthouse path_beg -i /lighthouse/
@@ -22,10 +22,6 @@ frontend http_api
     use_backend http_api_servers if PATH_lighthouse
     use_backend http_api_servers if PATH_eth
 
-
-frontend json_rpc
-    bind *:8080
-    mode http
     default_backend json_rpc_server
 
 backend http_api_servers
@@ -35,11 +31,12 @@ backend http_api_servers
 
 
 backend json_rpc_server
+    mode http
     server gnode 127.0.0.1:{{ geth_rpc_port }} check
 
 
 listen stats
-   bind *:8888
+   bind *:8080
    stats enable
    stats uri /
    stats refresh 5s

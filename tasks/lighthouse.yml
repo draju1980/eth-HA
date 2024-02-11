@@ -10,7 +10,7 @@
   ansible.builtin.docker_container:
     name: "{{ lighthouse_node_name }}"
     image: "{{ lighthouse_docker_image }}"
-    command: lighthouse bn --network sepolia --execution-endpoint http://{{ geth_node_name }}:8551 --execution-jwt /root/.lighthouse/config/jwt.hex --checkpoint-sync-url https://sepolia.beaconstate.info --http --http-port 5052 --http-address 0.0.0.0 --disable-deposit-contract-sync --disable-upnp 
+    command: lighthouse bn --network sepolia --execution-endpoint http://{{ geth_node_name }}:8551 --execution-jwt /root/.lighthouse/config/jwt.hex --checkpoint-sync-url https://sepolia.beaconstate.info --http --http-port 5052 --http-address 0.0.0.0 --disable-deposit-contract-sync --disable-upnp --datadir /root/.lighthouse/data
     # Staking
     # command: lighthouse bn --network sepolia --execution-endpoint http://{{ geth_node_name }}:8551 --execution-jwt /root/.lighthouse/config/jwt.hex --checkpoint-sync-url https://sepolia.beaconstate.info --http --http-port 5052 --http-address 0.0.0.0 --http-allow-origin="*"
     # Non-staking
@@ -43,28 +43,3 @@
   ansible.builtin.template:
       src: "../templates/password.txt.j2"
       dest: "{{ app_data_path }}/{{ lighthouse_node_name }}/config/password.pass"
-
-# lighthouse --network sepolia account wallet create --name cube --password-file /root/.lighthouse/config/password.pass
-# lighthouse --network sepolia account wallet import --name wally --key-file wally.key --password-file wally.pass
-
-# - name: Check if the file exists
-#   ansible.builtin.stat:
-#     path: "{{ datadir }}/{{ lighthouse_node_name }}/config/aditional_wallet.txt"
-#   register: wallet_file_stat
-
-
-# - name: Create additional lighthous wallet
-#   when: wallet_file_stat.stat.exists == False
-#   docker_container:
-#     name: additional_lighthous_wallet
-#     image: sigp/lighthouse:latest-modern
-#     command: account new --password /root/.lighthouse/config/password.txt
-#     volumes:
-#       - "{{ datadir }}/{{ lighthouse_node_name }}/config:/root/.lighthouse/config"
-#     register: additional_wallet
-
-# - name: Copy aditional_wallet details to a file
-#   when: additional_wallet.changed
-#   ansible.builtin.copy:
-#     content: "{{ aditional_wallet.stdout }}"
-#     dest: "{{ datadir }}/{{ lighthouse_node_name }}/config/aditional_wallet.txt"

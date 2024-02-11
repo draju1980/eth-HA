@@ -1,6 +1,6 @@
 Application Design
 =========
-![image](https://github.com/draju1980/ethnodes/assets/28708694/6a23bfc3-aee7-4061-a950-5140eca038a2)
+![alt text](image.png)
 
 
 Role Name
@@ -58,3 +58,74 @@ Run the Ansible playbook using the inventory file:
 ```
 ansible-playbook -i inventory.ini tasks/main.yml
 ```
+
+ETH node operations using ethHA {start|stop|restart|reset}
+--------------
+Using ethHA we can stop, start restart or reset ethereum nodes.
+
+To restart ethereum nodes use below command.
+```
+:~# ethHA restart
+Restarting all Docker containers...
+geth
+lighthouse
+```
+
+To stop the ethereum nodes use below command.
+```
+:~# ethHA stop
+Stopping all Docker containers...
+geth
+lighthouse
+```
+
+To start ethereum nodes use below command.
+```
+:~# ethHA start
+Starting all Docker containers...
+geth
+lighthouse
+```
+
+To reset ethereum nodes use below command, reset will wipe all the chain data.
+```
+:~# ethHA reset
+Stop all Docker containers...
+geth
+lighthouse
+Removing all containers data......
+Starting all Docker containers...
+geth
+lighthouse
+```
+
+RPC and REST API request to ethereum nodes
+--------------
+Given that Geth nodes support RPC requests and Lighthouse nodes support REST API requests, you can leverage a load balancer to route and respond to both types of requests using the same endpoint. Here are a few examples:
+
+
+Sending an RPC request to a Geth node:
+```
+curl -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' http://helloworld.com
+```
+
+Sending a REST API request to a Lighthouse node:
+```
+curl -X GET "http://helloworld.com/lighthouse/peers" -H  "accept: application/json"
+```
+
+Another example of sending an RPC request to a Geth node:
+```
+curl -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_getBalance","params":["0x407d73d8a49eeb85d32cf465507dd71d507100c1","latest"],"id":1}' http://helloworld.com
+```
+
+Sending a REST API request to a Lighthouse node:
+```
+curl -X GET "http://helloworld.com/lighthouse/health" -H  "accept: application/json"
+```
+
+To view backend RPC or REST API stats via the HAProxy UI
+--------------
+Utilize an auto-generated password to access the HAProxy stats UI, which will be provided during the final task of the playbook execution. Alternatively, you may retrieve the login credentials from the HAProxy configuration file situated at /etc/haproxy/haproxy.cfg.
+
+![alt text](image-1.png)

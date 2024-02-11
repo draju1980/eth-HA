@@ -18,8 +18,6 @@ docker_network_name: "ethnet"
 # Cointaiuner names for geth, lighthouse and haproxy
 geth_node_name: "geth"
 geth_docker_image: "ethereum/client-go:stable"
-prysm_node_name: "prysm"
-prysm_docker_image: "gcr.io/prysmaticlabs/prysm/beacon-chain:latest"
 lighthouse_node_name: "lighthouse"
 lighthouse_docker_image: "sigp/lighthouse:latest"
 haproxy_node_name: "haproxy"
